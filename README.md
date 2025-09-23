@@ -89,6 +89,30 @@ The project follows a **layered architecture** pattern with clear separation of 
 
 The API will be available at `http://localhost:5000`
 
+## Run with Docker
+
+You can run the API without installing Python locally using Docker.
+
+1. Build the image
+   ```bash
+   docker build -t cod-capm-endpoint .
+   ```
+
+2. Run the container (maps port 5000)
+   ```bash
+   docker run -d --rm -p 5000:5000 --name cod-capm-endpoint cod-capm-endpoint
+   ```
+
+3. Verify endpoints
+   - Home: http://localhost:5000/
+   - Health: http://localhost:5000/health
+   - Products: http://localhost:5000/api/products
+   - Product detail: http://localhost:5000/api/products/1
+
+Notes:
+- If port 5000 is busy, change mapping: `-p 5050:5000` and use `http://localhost:5050`.
+- This container uses Flask’s development server; for production, use a WSGI server (e.g., gunicorn) and a proper Procfile.
+
 ## Usage Examples
 
 ### Get All Products

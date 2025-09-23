@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from typing import Optional
-from ..services.product_service import ProductService
-from ..repositories.product_repository import ProductRepository
+from services.product_service import ProductService
+from repositories.product_repository import ProductRepository
 
 # Create blueprint
 product_bp = Blueprint('products', __name__, url_prefix='/api/products')

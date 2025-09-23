@@ -1,8 +1,8 @@
 from typing import Optional, Dict, Any
-from ..models.cart import Cart
-from ..repositories.cart_repository import CartRepository
-from ..repositories.product_repository import ProductRepository
-from .product_service import ProductService
+from models.cart import Cart
+from repositories.cart_repository import CartRepository
+from repositories.product_repository import ProductRepository
+from services.product_service import ProductService
 
 
 class CartService:

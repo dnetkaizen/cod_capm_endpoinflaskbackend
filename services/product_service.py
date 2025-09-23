@@ -1,6 +1,6 @@
 from typing import List, Optional, Dict, Any
-from ..models.product import Product
-from ..repositories.product_repository import ProductRepository
+from models.product import Product
+from repositories.product_repository import ProductRepository
 
 
 class ProductService:

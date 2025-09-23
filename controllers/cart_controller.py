@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
-from ..services.cart_service import CartService
-from ..repositories.cart_repository import CartRepository
-from ..repositories.product_repository import ProductRepository
+from services.cart_service import CartService
+from repositories.cart_repository import CartRepository
+from repositories.product_repository import ProductRepository
 
 # Create blueprint
 cart_bp = Blueprint('cart', __name__, url_prefix='/api/cart')

@@ -1,0 +1,25 @@
+# Exclude virtual environments
+venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Git
+.git/
+.gitignore
+
+# OS/IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs and temp
+*.log
+*.tmp
+
+# Local config
+*.env
+*.local

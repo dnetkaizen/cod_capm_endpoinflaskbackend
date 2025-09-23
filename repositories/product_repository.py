@@ -1,6 +1,6 @@
 from typing import List, Optional
 from decimal import Decimal
-from ..models.product import Product
+from models.product import Product
 
 
 class ProductRepository:

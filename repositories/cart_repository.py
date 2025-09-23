@@ -1,6 +1,6 @@
 from typing import Dict, Optional
 import uuid
-from ..models.cart import Cart
+from models.cart import Cart
 
 
 class CartRepository:

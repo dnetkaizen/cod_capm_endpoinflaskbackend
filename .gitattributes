@@ -1,0 +1,17 @@
+# Normalize line endings
+* text=auto
+
+# Enforce LF for code and docs
+*.py text eol=lf
+*.md text eol=lf
+Dockerfile text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+
+# Shell scripts LF, Windows scripts CRLF
+*.sh text eol=lf
+*.bash text eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
