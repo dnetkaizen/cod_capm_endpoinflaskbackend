@@ -33,50 +33,8 @@ class CartService:
                 'cart': None
             }
         
-        # Get or create cart
-        cart = self.cart_repository.get_cart_by_id(cart_id)
-        if not cart:
-            cart = self.cart_repository.create_cart()
-        
-        # Get product
-        product = self.product_repository.get_product_by_id(product_id)
-        if not product:
-            return {
-                'success': False,
-                'message': 'Product not found',
-                'cart': None
-            }
-        
-        # Check if adding this quantity would exceed available stock
-        current_quantity_in_cart = 0
-        for item in cart.items:
-            if item.product.id == product_id:
-                current_quantity_in_cart = item.quantity
-                break
-        
-        total_requested = current_quantity_in_cart + quantity
-        if not self.product_repository.check_stock_availability(product_id, total_requested):
-            return {
-                'success': False,
-                'message': f'Cannot add {quantity} items. Total would exceed available stock.',
-                'cart': cart.to_dict()
-            }
-        
-        # Add product to cart
-        cart.add_product(product, quantity)
-        
-        # Update cart in repository
-        self.cart_repository.update_cart(cart)
-        
-        return {
-            'success': True,
-            'message': f'Added {quantity} {product.name}(s) to cart',
-            'cart': cart.to_dict()
-        }
-    
-    def remove_product_from_cart(self, cart_id: str, product_id: int) -> Dict[str, Any]:
-        """Remove a product from the cart."""
-        cart = self.cart_repository.get_cart_by_id(cart_id)
+        # Add item to cart
+        cart = self.cart_repository.add_item_to_cart(cart_id, product_id, quantity)
         if not cart:
             return {
                 'success': False,
@@ -84,8 +42,16 @@ class CartService:
                 'cart': None
             }
         
-        if cart.remove_product(product_id):
-            self.cart_repository.update_cart(cart)
+        return {
+            'success': True,
+            'message': f'Added {quantity} item(s) to cart',
+            'cart': cart.to_dict()
+        }
+    
+    def remove_product_from_cart(self, cart_id: str, product_id: int) -> Dict[str, Any]:
+        """Remove a product from the cart."""
+        if self.cart_repository.remove_item_from_cart(cart_id, product_id):
+            cart = self.cart_repository.get_cart_by_id(cart_id)
             return {
                 'success': True,
                 'message': 'Product removed from cart',
@@ -95,31 +61,13 @@ class CartService:
             return {
                 'success': False,
                 'message': 'Product not found in cart',
-                'cart': cart.to_dict()
+                'cart': None
             }
     
     def update_cart_item_quantity(self, cart_id: str, product_id: int, quantity: int) -> Dict[str, Any]:
         """Update the quantity of a product in the cart."""
-        cart = self.cart_repository.get_cart_by_id(cart_id)
-        if not cart:
-            return {
-                'success': False,
-                'message': 'Cart not found',
-                'cart': None
-            }
-        
-        if quantity > 0:
-            # Check stock availability for the new quantity
-            availability = self.product_service.check_product_availability(product_id, quantity)
-            if not availability['available']:
-                return {
-                    'success': False,
-                    'message': availability['reason'],
-                    'cart': cart.to_dict()
-                }
-        
-        if cart.update_quantity(product_id, quantity):
-            self.cart_repository.update_cart(cart)
+        if self.cart_repository.update_item_quantity(cart_id, product_id, quantity):
+            cart = self.cart_repository.get_cart_by_id(cart_id)
             action = 'removed from' if quantity == 0 else 'updated in'
             return {
                 'success': True,
@@ -130,7 +78,7 @@ class CartService:
             return {
                 'success': False,
                 'message': 'Product not found in cart',
-                'cart': cart.to_dict()
+                'cart': None
             }
     
     def get_cart_details(self, cart_id: str) -> Dict[str, Any]:
@@ -161,22 +109,19 @@ class CartService:
     
     def clear_cart(self, cart_id: str) -> Dict[str, Any]:
         """Clear all items from the cart."""
-        cart = self.cart_repository.get_cart_by_id(cart_id)
-        if not cart:
+        if self.cart_repository.clear_cart(cart_id):
+            cart = self.cart_repository.get_cart_by_id(cart_id)
+            return {
+                'success': True,
+                'message': 'Cart cleared successfully',
+                'cart': cart.to_dict()
+            }
+        else:
             return {
                 'success': False,
                 'message': 'Cart not found',
                 'cart': None
             }
-        
-        cart.clear()
-        self.cart_repository.update_cart(cart)
-        
-        return {
-            'success': True,
-            'message': 'Cart cleared successfully',
-            'cart': cart.to_dict()
-        }
     
     def validate_cart_for_checkout(self, cart_id: str) -> Dict[str, Any]:
         """Validate cart items for checkout (stock availability, active products, etc.)."""

@@ -1,20 +1,17 @@
-from dataclasses import dataclass
-from typing import Optional
+from .database import db
 from decimal import Decimal
 
-
-@dataclass
-class Product:
+class Product(db.Model):
     """Product model representing a product in the system."""
-    id: int
-    name: str
-    description: str
-    price: Decimal
-    stock: int
-    category: str
-    image_url: Optional[str] = None
-    is_active: bool = True
-    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    price = db.Column(db.Numeric(10, 2), nullable=False)
+    stock = db.Column(db.Integer, nullable=False)
+    category = db.Column(db.String(50), nullable=False)
+    image_url = db.Column(db.String(200), nullable=True)
+    is_active = db.Column(db.Boolean, default=True)
+
     def to_dict(self) -> dict:
         """Convert product to dictionary for JSON serialization."""
         return {
@@ -27,12 +24,11 @@ class Product:
             'image_url': self.image_url,
             'is_active': self.is_active
         }
-    
-    @classmethod
-    def from_dict(cls, data: dict) -> 'Product':
+
+    @staticmethod
+    def from_dict(data: dict) -> 'Product':
         """Create Product instance from dictionary."""
-        return cls(
-            id=data['id'],
+        return Product(
             name=data['name'],
             description=data['description'],
             price=Decimal(str(data['price'])),
