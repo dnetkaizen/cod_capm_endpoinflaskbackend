@@ -17,6 +17,13 @@ Este proyecto implementa una API REST en Flask para un sistema de e-commerce con
 - Herramienta para probar la API: `curl`, Postman o navegador (para endpoints GET)
 - Opcional: Git, para clonar y mantener el repositorio
 
+## Clonar el repositorio
+
+```bash
+git clone https://github.com/dnetkaizen/cod_capm_endpoinflaskbackend.git
+cd cod_capm_endpoinflaskbackend/Endpoint_flask
+```
+
 ## Guía rápida (Docker Compose)
 
 Levanta el servicio usando Docker Compose (multi-servicio) con los siguientes comandos.
