@@ -2,7 +2,10 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from controllers.product_controller import product_bp
 from controllers.cart_controller import cart_bp
-
+from controllers.user_controller import auth_bp
+from models.database import db
+from repositories.product_repository import ProductRepository
+import os
 
 def create_app():
     """Application factory pattern for creating Flask app."""
@@ -11,6 +14,16 @@ def create_app():
     # Configuration
     app.config['DEBUG'] = True
     app.config['JSON_SORT_KEYS'] = False
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'a_default_secret_key')
+    
+    # Initialize database
+    db.init_app(app)
+    
+    with app.app_context():
+        db.create_all()
+        ProductRepository().populate_db()
     
     # Enable CORS for all routes
     CORS(app)
@@ -18,6 +31,7 @@ def create_app():
     # Register blueprints
     app.register_blueprint(product_bp)
     app.register_blueprint(cart_bp)
+    app.register_blueprint(auth_bp)
     
     # Root endpoint
     @app.route('/')
@@ -41,6 +55,10 @@ def create_app():
                     'remove_item': 'DELETE /api/cart/<cart_id>/items/<product_id>',
                     'clear_cart': 'POST /api/cart/<cart_id>/clear',
                     'validate_cart': 'GET /api/cart/<cart_id>/validate'
+                },
+                'auth': {
+                    'signup': 'POST /api/auth/signup',
+                    'login': 'POST /api/auth/login'
                 }
             }
         })
@@ -76,7 +94,6 @@ def create_app():
         }), 400
     
     return app
-
 
 if __name__ == '__main__':
     app = create_app()

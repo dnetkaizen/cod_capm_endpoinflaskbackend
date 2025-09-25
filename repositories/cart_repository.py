@@ -1,43 +1,33 @@
-from typing import Dict, Optional
+from typing import Optional
 import uuid
-from models.cart import Cart
-
+from models.cart import Cart, CartItem
+from models.database import db
 
 class CartRepository:
     """Repository for managing cart data access."""
-    
-    def __init__(self):
-        # In-memory storage for demo purposes
-        # In a real application, this would connect to a database
-        self._carts: Dict[str, Cart] = {}
     
     def create_cart(self, user_id: Optional[str] = None) -> Cart:
         """Create a new cart."""
         cart_id = str(uuid.uuid4())
         cart = Cart(id=cart_id, user_id=user_id)
-        self._carts[cart_id] = cart
+        db.session.add(cart)
+        db.session.commit()
         return cart
     
     def get_cart_by_id(self, cart_id: str) -> Optional[Cart]:
         """Get a cart by its ID."""
-        return self._carts.get(cart_id)
+        return Cart.query.get(cart_id)
     
     def get_cart_by_user_id(self, user_id: str) -> Optional[Cart]:
         """Get a cart by user ID."""
-        for cart in self._carts.values():
-            if cart.user_id == user_id:
-                return cart
-        return None
-    
-    def update_cart(self, cart: Cart) -> Cart:
-        """Update an existing cart."""
-        self._carts[cart.id] = cart
-        return cart
+        return Cart.query.filter_by(user_id=user_id).first()
     
     def delete_cart(self, cart_id: str) -> bool:
         """Delete a cart."""
-        if cart_id in self._carts:
-            del self._carts[cart_id]
+        cart = self.get_cart_by_id(cart_id)
+        if cart:
+            db.session.delete(cart)
+            db.session.commit()
             return True
         return False
     
@@ -59,6 +49,44 @@ class CartRepository:
         """Clear all items from a cart."""
         cart = self.get_cart_by_id(cart_id)
         if cart:
-            cart.clear()
+            for item in cart.items:
+                db.session.delete(item)
+            db.session.commit()
+            return True
+        return False
+
+    def add_item_to_cart(self, cart_id: str, product_id: int, quantity: int) -> Optional[Cart]:
+        """Add an item to a cart or update its quantity."""
+        cart = self.get_cart_by_id(cart_id)
+        if not cart:
+            return None
+
+        item = CartItem.query.filter_by(cart_id=cart_id, product_id=product_id).first()
+        if item:
+            item.quantity += quantity
+        else:
+            item = CartItem(cart_id=cart_id, product_id=product_id, quantity=quantity)
+            db.session.add(item)
+        
+        db.session.commit()
+        return cart
+
+    def remove_item_from_cart(self, cart_id: str, product_id: int) -> bool:
+        """Remove an item from a cart."""
+        item = CartItem.query.filter_by(cart_id=cart_id, product_id=product_id).first()
+        if item:
+            db.session.delete(item)
+            db.session.commit()
+            return True
+        return False
+
+    def update_item_quantity(self, cart_id: str, product_id: int, quantity: int) -> bool:
+        """Update the quantity of an item in a cart."""
+        item = CartItem.query.filter_by(cart_id=cart_id, product_id=product_id).first()
+        if item:
+            if quantity <= 0:
+                return self.remove_item_from_cart(cart_id, product_id)
+            item.quantity = quantity
+            db.session.commit()
             return True
         return False
