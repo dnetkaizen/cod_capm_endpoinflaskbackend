@@ -9,33 +9,17 @@ Este proyecto implementa una API REST en Flask para un sistema de e-commerce con
 - Flask-CORS: 4.0.0
 - Werkzeug: 2.3.7
 
-## Guía rápida (Docker / Docker Compose)
+## Requisitos previos
 
-Elige uno de los métodos para levantar el servicio: Docker (contenedor único) o Docker Compose (multi-servicio).
+- Docker Desktop (Windows/Mac) o Docker Engine + Docker Compose V2 (Linux)
+- Conexión a internet para descargar imágenes base (por primera vez)
+- Puerto 5000 libre en el host (o ajusta `ports` en `docker-compose.yml`)
+- Herramienta para probar la API: `curl`, Postman o navegador (para endpoints GET)
+- Opcional: Git, para clonar y mantener el repositorio
 
-## Ejecución con Docker
+## Guía rápida (Docker Compose)
 
-Puedes ejecutar la API sin instalar Python localmente usando Docker.
-
-1. Construir la imagen
-   ```bash
-   docker build -t cod-capm-endpoint .
-   ```
-
-2. Ejecutar el contenedor (mapea el puerto 5000)
-   ```bash
-   docker run -d --rm -p 5000:5000 --name cod-capm-endpoint cod-capm-endpoint
-   ```
-
-3. Verificar endpoints
-   - Inicio: http://localhost:5000/
-   - Salud: http://localhost:5000/health
-   - Productos: http://localhost:5000/api/products
-   - Detalle de producto: http://localhost:5000/api/products/1
-
-Notas:
-- Si el puerto 5000 está ocupado, cambia el mapeo: `-p 5050:5000` y usa `http://localhost:5050`.
-- Este contenedor usa el servidor de desarrollo de Flask; para producción, usa un servidor WSGI (por ejemplo, gunicorn) y un Procfile adecuado.
+Levanta el servicio usando Docker Compose (multi-servicio) con los siguientes comandos.
 
 ## Ejecución con Docker Compose
 
@@ -65,9 +49,13 @@ docker compose down
 ```
 
 Notas:
-- Este proyecto funciona "in-memory" (sin base de datos) por defecto. Si tu `docker-compose.yml` define un servicio `db`, se usará solo si el código de la app lee `DATABASE_URL` y se conecta explícitamente.
-- Si usas `depends_on: condition: service_healthy` para `db`, asegúrate de tener un `healthcheck` configurado en el servicio de la base de datos.
+- Por defecto la app funciona "in-memory" (sin base de datos). Si `DATABASE_URL` está definido y el código de la app lo consume, se conectará a PostgreSQL en el servicio `db`.
+- Si usas `depends_on: condition: service_healthy` para `db`, asegúrate de tener un `healthcheck` configurado (p. ej., `pg_isready`).
 - Si el puerto 5000 está ocupado en tu máquina, ajusta el mapeo en `docker-compose.yml` bajo `ports` (por ejemplo, `"5050:5000"`).
+- Recomendaciones con PostgreSQL:
+  - Usa variables vía `.env` para credenciales y URL (no hardcodees en `docker-compose.yml`).
+  - Considera un volumen para persistencia de datos (p. ej., `pgdata:/var/lib/postgresql/data`).
+  - Si tu app necesita esquema/tablas, documenta cómo inicializarlas (migraciones o scripts de arranque).
 
 ### Ejemplo de docker-compose.yml recomendado
 
