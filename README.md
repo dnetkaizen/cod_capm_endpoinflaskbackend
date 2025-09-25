@@ -9,9 +9,9 @@ Este proyecto implementa una API REST en Flask para un sistema de e-commerce con
 - Flask-CORS: 4.0.0
 - Werkzeug: 2.3.7
 
-## Guía rápida de ejecución
+## Guía rápida (Docker / Docker Compose)
 
-Sigue estos pasos para levantar el servicio rápidamente con docker:
+Elige uno de los métodos para levantar el servicio: Docker (contenedor único) o Docker Compose (multi-servicio).
 
 ## Ejecución con Docker
 
@@ -36,6 +36,83 @@ Puedes ejecutar la API sin instalar Python localmente usando Docker.
 Notas:
 - Si el puerto 5000 está ocupado, cambia el mapeo: `-p 5050:5000` y usa `http://localhost:5050`.
 - Este contenedor usa el servidor de desarrollo de Flask; para producción, usa un servidor WSGI (por ejemplo, gunicorn) y un Procfile adecuado.
+
+## Ejecución con Docker Compose
+
+Si tienes `docker-compose.yml` en el proyecto, puedes levantar todo el stack con un solo comando.
+
+### Levantar servicios
+```bash
+docker compose up -d --build
+```
+
+### Ver estado y logs
+```bash
+docker compose ps
+docker compose logs -f web
+docker compose logs -f db   # si tienes servicio de base de datos
+```
+
+### Acceso a la API
+- Inicio: http://localhost:5000/
+- Salud: http://localhost:5000/health
+- Productos: http://localhost:5000/api/products
+- Detalle de producto: http://localhost:5000/api/products/1
+
+### Parar y limpiar
+```bash
+docker compose down
+```
+
+Notas:
+- Este proyecto funciona "in-memory" (sin base de datos) por defecto. Si tu `docker-compose.yml` define un servicio `db`, se usará solo si el código de la app lee `DATABASE_URL` y se conecta explícitamente.
+- Si usas `depends_on: condition: service_healthy` para `db`, asegúrate de tener un `healthcheck` configurado en el servicio de la base de datos.
+- Si el puerto 5000 está ocupado en tu máquina, ajusta el mapeo en `docker-compose.yml` bajo `ports` (por ejemplo, `"5050:5000"`).
+
+### Ejemplo de docker-compose.yml recomendado
+
+```yaml
+version: '3.8'
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
+```
+
+### Uso de .env (opcional)
+Crea un archivo `.env` junto a `docker-compose.yml` con variables:
+
+```env
+DATABASE_URL=postgresql://user:password@db:5432/mydatabase
+POSTGRES_USER=user
+POSTGRES_PASSWORD=password
+POSTGRES_DB=mydatabase
+```
+
+Docker Compose cargará automáticamente las variables del `.env`.
 
 ## Cómo consumir la API
 
@@ -111,7 +188,7 @@ Respuestas de error:
 }
 ```
 
-## Documentación Arquitectura
+## Documentación de Arquitectura
 
 El proyecto sigue un patrón de **arquitectura por capas** con una clara separación de responsabilidades:
 
@@ -291,27 +368,3 @@ Puedes probar la API usando:
 - Implementa un sistema de logging y monitoreo adecuados
 - Agrega validación y sanitización de entradas
 - Considera limitar la tasa (rate limiting) y caching
-
-### Opcional: Ejecución local (sin Docker)
-
-Si prefieres ejecutar sin Docker:
-
-1. Crear y activar entorno virtual
-   ```bash
-   python -m venv venv
-   venv\Scripts\activate  # Windows
-   # o
-   source venv/bin/activate  # Linux/Mac
-   ```
-
-2. Instalar dependencias
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. Ejecutar la aplicación
-   ```bash
-   python app.py
-   ```
-
-La API estará disponible en `http://localhost:5000`
